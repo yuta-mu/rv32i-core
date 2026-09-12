@@ -24,7 +24,7 @@ check-env:
 	@$(CC) --version | head -n 1
 	@$(QEMU) --version | head -n 1
 	@verilator --version | head -n 1
-	@iverilog -V | head -n 1
+	@iverilog -V 2>&1 | head -n 1
 	@ocamlc -v | head -n 1
 	@echo "All tools exist and are ready."
 
