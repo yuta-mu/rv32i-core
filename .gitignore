@@ -34,3 +34,4 @@ compiler/lexer.ml
 compiler/parser.ml
 compiler/parser.mli
 compiler/simc
+compiler/tmp.s
