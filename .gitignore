@@ -1,0 +1,36 @@
+# OS / エディタ
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+
+# RISC-V コンパイル生成物
+*.o
+*.elf
+*.bin
+*.hex
+*.map
+*.asm
+*.dump
+
+# Verilog など
+*.vcd
+*.fst
+sim.out
+a.out
+obj_dir/
+work/
+
+# OCaml
+*.cmo
+*.cmi
+compiler/lexer.ml
+compiler/parser.ml
+compiler/parser.mli
+compiler/simc

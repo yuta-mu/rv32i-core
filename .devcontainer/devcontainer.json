@@ -1,0 +1,20 @@
+{
+    "name": "RV32I Dev Environment",
+    "dockerComposeFile": [
+        "../docker-compose.yml",
+        "docker-compose.yml"
+    ],
+    "service": "app",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "mshr-h.veriloghdl",
+                "twxs.cmake",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "ocamllabs.ocaml-platform"
+            ]
+        }
+    },
+    "remoteUser": "ubuntu"
+}

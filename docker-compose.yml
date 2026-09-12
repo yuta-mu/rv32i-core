@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    image: rv32i-dev
+    volumes:
+      - .:/workspace:z
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
