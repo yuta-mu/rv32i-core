@@ -5,7 +5,7 @@ module top;
     initial begin
         clk = 0;
         count = 0;
-        $dumpfile("test-env/wave.vcd");
+        $dumpfile("hw/sim/wave.vcd");
         $dumpvars(0, top);
         #100 $finish;
     end

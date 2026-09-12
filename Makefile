@@ -82,4 +82,4 @@ test-sim:
 clean:
 	rm -f tests/c/*.elf tests/c/*.hex
 	rm -f tests/asm/*.elf tests/asm/*.hex
-	rm -f hw/sim/*.out hw/sim/*.vcd
+	rm -rf hw/sim
