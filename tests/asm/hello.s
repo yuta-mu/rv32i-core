@@ -21,3 +21,4 @@ done:
 .section .rodata
 msg:
     .string "Hello RISC-V!\n"
+

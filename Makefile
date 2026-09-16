@@ -1,20 +1,16 @@
-# --------------------------------------------------
-# ツールチェーンと共通パス
-# --------------------------------------------------
 CC        := riscv64-unknown-elf-gcc
 OBJCOPY   := riscv64-unknown-elf-objcopy
+OBJDUMP   := riscv64-unknown-elf-objdump
 QEMU      := qemu-system-riscv32
 
 BSP_DIR   := bsp
 CRT0      := $(BSP_DIR)/crt0.s
 LINKER    := $(BSP_DIR)/linker.ld
 
-CFLAGS    := -march=rv32i -mabi=ilp32 -nostdlib -nostartfiles -fno-builtin -T $(LINKER) -O2
+CFLAGS    := -march=rv32i -mabi=ilp32 -nostdlib -nostartfiles -fno-builtin \
+             -T $(LINKER) -I$(BSP_DIR) -O2 -Wall
 
-# --------------------------------------------------
-# 疑似ターゲット
-# --------------------------------------------------
-.PHONY: all check-env run-boot run-hello run-mandelbrot test-sim clean
+.PHONY: all clean check-env run run-mandelbrot run-raytrace sim-hw compiler
 
 all: run-mandelbrot
 
@@ -29,57 +25,63 @@ check-env:
 	@echo "All tools exist and are ready."
 
 # --------------------------------------------------
-# ビルド規則
-# --------------------------------------------------
 # .c のビルド
-tests/c/%.elf: tests/c/%.c $(CRT0) $(LINKER)
+%.elf: %.c $(CRT0) $(LINKER)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CRT0) $< -o $@
 
 # .s のビルド: スタートアップ処理を自前で含むため crt0 は不要
-tests/asm/%.elf: tests/asm/%.s $(LINKER)
+%.elf: %.s $(LINKER)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -o $@
 
 # ELF から Verilog 用 hex ファイルへの変換
 %.hex: %.elf
 	$(OBJCOPY) -O verilog $< $@
 
+# 逆アセンブルダンプ
+%.dump: %.elf
+	$(OBJDUMP) -D -S $< > $@
+
 # --------------------------------------------------
-# 実行ターゲット (QEMU)
-# --------------------------------------------------
+
+TARGET ?= sw/mandelbrot/mandelbrot.elf
+
+.PHONY: run
+run: $(TARGET)
+	@echo "=== Running QEMU: $< ==="
+	@echo "Press Ctrl-A then X to exit."
+	$(QEMU) -M virt -bios none -kernel $< -nographic
+
 run-boot: tests/asm/boot.elf
-	@echo "Running QEMU... Press Ctrl-A then X to exit."
 	$(QEMU) -M virt -bios none -kernel $< -nographic
 
 run-hello: tests/asm/hello.elf
 	$(QEMU) -M virt -bios none -kernel $< -nographic
 
-run-mandelbrot: tests/c/mandelbrot.elf
+run-mandelbrot: sw/mandelbrot/mandelbrot.elf
+	$(QEMU) -M virt -bios none -kernel $< -nographic
+
+run-raytrace: sw/raytracer/c/main.elf
 	$(QEMU) -M virt -bios none -kernel $< -nographic
 
 # --------------------------------------------------
-# 汎用 QEMU 実行ターゲット
-# --------------------------------------------------
-# TARGET が指定されていない場合のデフォルト値
-TARGET ?= tests/c/mandelbrot.elf
 
-.PHONY: run
-run: $(TARGET)
-	@echo "=== Running QEMU: $< ==="
-	$(QEMU) -M virt -bios none -kernel $< -nographic
-
-# --------------------------------------------------
-# ハードウェアシミュレーション (Icarus Verilog)
-# --------------------------------------------------
 test-sim:
 	@mkdir -p hw/sim
 	iverilog -o hw/sim/sim.out hw/rtl/counter.v
 	vvp hw/sim/sim.out
 	@echo "Simulation complete."
 
-# --------------------------------------------------
-# クリーンアップ
-# --------------------------------------------------
+sim-hw:
+	$(MAKE) -C hw/sim
+
+compiler:
+	$(MAKE) -C compiler
+
 clean:
-	rm -f tests/c/*.elf tests/c/*.hex
-	rm -f tests/asm/*.elf tests/asm/*.hex
-	rm -rf hw/sim
+	rm -f tests/asm/*.elf tests/asm/*.hex tests/asm/*.dump
+	rm -f sw/mandelbrot/*.elf sw/mandelbrot/*.hex sw/mandelbrot/*.dump
+	rm -f sw/raytracer/*/*.elf sw/raytracer/*/*.hex sw/raytracer/*/*.dump
+	rm -rf hw/sim/sim.out hw/sim/*.vcd
+	-$(MAKE) -C compiler clean
