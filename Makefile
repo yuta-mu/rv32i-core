@@ -3,6 +3,9 @@ OBJCOPY   := riscv64-unknown-elf-objcopy
 OBJDUMP   := riscv64-unknown-elf-objdump
 QEMU      := qemu-system-riscv32
 
+IVERILOG  := iverilog -g2012 -Wall -I hw/rtl
+VVP       := vvp
+
 BSP_DIR   := bsp
 CRT0      := $(BSP_DIR)/crt0.s
 LINKER    := $(BSP_DIR)/linker.ld
@@ -10,7 +13,8 @@ LINKER    := $(BSP_DIR)/linker.ld
 CFLAGS    := -march=rv32i -mabi=ilp32 -nostdlib -nostartfiles -fno-builtin \
              -T $(LINKER) -I$(BSP_DIR) -O2 -Wall
 
-.PHONY: all clean check-env run run-mandelbrot run-raytrace sim-hw compiler
+.PHONY: all clean check-env run run-boot run-hello run-mandelbrot run-raytrace \
+        compiler sim-hw test-% wave-%
 
 all: run-mandelbrot
 
@@ -67,6 +71,11 @@ run-raytrace: sw/raytracer/c/main.elf
 
 # --------------------------------------------------
 
+test-%: hw/rtl/%.sv hw/sim/tb_%.sv
+	@mkdir -p hw/sim
+	$(IVERILOG) -o hw/sim/sim_$*.out $^
+	$(VVP) hw/sim/sim_$*.out
+
 test-sim:
 	@mkdir -p hw/sim
 	iverilog -o hw/sim/sim.out hw/rtl/counter.v
@@ -83,5 +92,5 @@ clean:
 	rm -f tests/asm/*.elf tests/asm/*.hex tests/asm/*.dump
 	rm -f sw/mandelbrot/*.elf sw/mandelbrot/*.hex sw/mandelbrot/*.dump
 	rm -f sw/raytracer/*/*.elf sw/raytracer/*/*.hex sw/raytracer/*/*.dump
-	rm -rf hw/sim/sim.out hw/sim/*.vcd
+	rm -rf hw/sim/*.out hw/sim/*.vcd
 	-$(MAKE) -C compiler clean
