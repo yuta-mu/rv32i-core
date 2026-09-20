@@ -76,11 +76,13 @@ test-%: hw/rtl/%.sv hw/sim/tb_%.sv
 	$(IVERILOG) -o hw/sim/sim_$*.out $^
 	$(VVP) hw/sim/sim_$*.out
 
-test-sim:
+test-control:
 	@mkdir -p hw/sim
-	iverilog -o hw/sim/sim.out hw/rtl/counter.v
-	vvp hw/sim/sim.out
-	@echo "Simulation complete."
+	$(IVERILOG) -o hw/sim/sim_control.out \
+		hw/rtl/control.sv \
+		hw/rtl/alu_control.sv \
+		hw/sim/tb_control.sv
+	$(VVP) hw/sim/sim_control.out
 
 sim-hw:
 	$(MAKE) -C hw/sim

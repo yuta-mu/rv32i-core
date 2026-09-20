@@ -1,4 +1,4 @@
-`include "alu_ops.svh"
+`include "rv32i_types.svh"
 
 module tb_alu;
     logic [31:0] a, b;

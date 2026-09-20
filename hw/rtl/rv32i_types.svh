@@ -13,6 +13,32 @@ typedef enum logic [6:0] {
     OP_AUIPC    = 7'b0010111
 } opcode_t;
 
+typedef enum logic [1:0] {
+    RESULT_ALU  = 2'b00,
+    RESULT_MEM  = 2'b01,
+    RESULT_PC4  = 2'b10,
+    RESULT_IMM  = 2'b11
+} result_src_t;
+
+typedef enum logic [1:0] {
+    ALU_OP_ADD    = 2'b00,
+    ALU_OP_BRANCH = 2'b01,
+    ALU_OP_RTYPE  = 2'b10,
+    ALU_OP_ITYPE  = 2'b11
+} alu_op_mode_t;
+
+typedef enum logic [3:0] {
+    ALU_ADD  = 4'b0000,
+    ALU_SUB  = 4'b1000,
+    ALU_SLL  = 4'b0001,
+    ALU_SLT  = 4'b0010,
+    ALU_SLTU = 4'b0011,
+    ALU_XOR  = 4'b0100,
+    ALU_SRL  = 4'b0101,
+    ALU_SRA  = 4'b1101,
+    ALU_OR   = 4'b0110,
+    ALU_AND  = 4'b0111
+} alu_op_t;
 
 localparam logic [2:0] FUNCT3_ADD   = 3'h0;
 localparam logic [2:0] FUNCT3_SUB   = 3'h0;

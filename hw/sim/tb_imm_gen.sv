@@ -8,6 +8,9 @@ module tb_imm_gen;
     );
 
     initial begin
+        $dumpfile("hw/sim/wave.vcd");
+        $dumpvars(0, tb_imm_gen);
+
         // I-type (addi x1, x0, 1)
         inst = 32'h00100093; #10;
         assert(imm == 32'd1) else $fatal(1, "I-type positive failed");
