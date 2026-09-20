@@ -15,3 +15,4 @@ typedef enum logic [3:0] {
 } alu_op_t;
 
 `endif
+
