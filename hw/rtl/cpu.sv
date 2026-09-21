@@ -13,6 +13,7 @@ module cpu (
     output logic        mem_write,
     output logic [31:0] mem_addr,
     output logic [31:0] mem_wdata,
+    output logic [3:0]  mem_wstrb,
     input  logic [31:0] mem_rdata
 );
 
@@ -21,7 +22,8 @@ module cpu (
     logic        jump;
     result_src_t result_src;
     alu_op_t     alu_op;
-    logic        alu_src;
+    logic        alu_src_a;
+    logic        alu_src_b;
     logic        reg_write;
 
     // Instruction fields for controller
@@ -42,7 +44,8 @@ module cpu (
         .mem_read   (mem_read),
         .mem_write  (mem_write),
         .result_src (result_src),
-        .alu_src    (alu_src),
+        .alu_src_a  (alu_src_a),
+        .alu_src_b  (alu_src_b),
         .reg_write  (reg_write),
         .alu_op     (alu_op)
     );
@@ -54,12 +57,14 @@ module cpu (
         .jump       (jump),
         .result_src (result_src),
         .alu_op     (alu_op),
-        .alu_src    (alu_src),
+        .alu_src_a  (alu_src_a),
+        .alu_src_b  (alu_src_b),
         .reg_write  (reg_write),
         .pc         (pc),
         .inst       (inst),
         .mem_addr   (mem_addr),
         .mem_wdata  (mem_wdata),
+        .mem_wstrb  (mem_wstrb),
         .mem_rdata  (mem_rdata)
     );
 

@@ -11,7 +11,8 @@ module controller (
     output logic         mem_read,
     output logic         mem_write,
     output result_src_t  result_src,
-    output logic         alu_src,
+    output logic         alu_src_a,
+    output logic         alu_src_b,
     output logic         reg_write,
     output alu_op_t      alu_op
 );
@@ -26,7 +27,8 @@ module controller (
         .mem_write  (mem_write),
         .result_src (result_src),
         .alu_op     (alu_op_mode),
-        .alu_src    (alu_src),
+        .alu_src_a  (alu_src_a),
+        .alu_src_b  (alu_src_b),
         .reg_write  (reg_write)
     );
 

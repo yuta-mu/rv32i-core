@@ -23,42 +23,30 @@ module tb_cpu;
         .mem_rdata (mem_rdata)
     );
 
-    logic [31:0] imem [0:1023];
-    logic [31:0] dmem [0:1023];
+    logic [31:0] memory [0:16383];
 
-    // Instruction memory read (Combinational / Asynchronous)
-    assign inst = imem[pc[11:2]];
+    assign inst = memory[pc[15:2]];
+    assign mem_rdata = mem_read ? memory[mem_addr[15:2]] : 32'h0;
 
-    // Data memory read (Combinational)
-    assign mem_rdata = mem_read ? dmem[mem_addr[11:2]] : 32'h0;
-
-    // Data memory write (Synchronous)
-    always_ff @(posedge clk) begin
-        if (mem_write) begin
-            dmem[mem_addr[11:2]] <= mem_wdata;
-            $display("[MEM WRITE] Addr: 0x%08h | Data: 0x%08h (%0d)", mem_addr, mem_wdata, $signed(mem_wdata));
-        end
-    end
-
-    // Clock & Reset Generation
-    always #5 clk = ~clk;
-
-    // Simulation Monitor & Termination
+    string  hex_file;
     integer cycle_count = 0;
+    bit     trace_en    = 0;
+
+    always #5 clk = ~clk;
 
     initial begin
         $dumpfile("hw/sim/tb_cpu.vcd");
         $dumpvars(0, tb_cpu);
 
+        // +trace 引数があるか
+        if ($test$plusargs("trace")) trace_en = 1;
+
+        // メモリのクリア
+        for (int i = 0; i < 16384; i++) memory[i] = 32'h0;
+
         // Load test hex file
-        if ($test$plusargs("hex")) begin
-            string hex_path;
-            $value$plusargs("hex=%s", hex_path);
-            $readmemh(hex_path, imem);
-        end else begin
-            // Default program loading
-            $readmemh("hw/sim/prog_basic.hex", imem);
-        end
+        if ($value$plusargs("hex=%s", hex_file)) $readmemh(hex_file, memory);
+        else $readmemh("hw/sim/prog_basic.hex", memory);
 
         // Reset sequence
         clk   = 0;
@@ -67,22 +55,50 @@ module tb_cpu;
         rst_n = 1;
     end
 
+    always_ff @(posedge clk) begin
+        if (mem_write) begin
+            if (mem_addr == 32'h1000_0000) begin
+                // UART 出力
+                $write("%c", mem_wdata[7:0]);
+                $fflush();
+            end else begin
+                if (u_cpu.mem_wstrb[0]) memory[mem_addr[15:2]][7:0]   <= mem_wdata[7:0];
+                if (u_cpu.mem_wstrb[1]) memory[mem_addr[15:2]][15:8]  <= mem_wdata[15:8];
+                if (u_cpu.mem_wstrb[2]) memory[mem_addr[15:2]][23:16] <= mem_wdata[23:16];
+                if (u_cpu.mem_wstrb[3]) memory[mem_addr[15:2]][31:24] <= mem_wdata[31:24];
+            end
+        end
+    end
+
     always @(posedge clk) begin
         if (rst_n) begin
             cycle_count <= cycle_count + 1;
 
-            $display("Cycle %0d | PC: 0x%08h | Inst: 0x%08h", cycle_count, pc, inst);
+            if (trace_en) $display("Cycle %0d | PC: 0x%08h | Inst: 0x%08h", cycle_count, pc, inst);
+            // if (trace_en) begin
+            //     $display("C%0d | PC:%08h | Inst:%08h | src_a:%b | src_b:%b | wen:%b | wdata:%08h | rs1:%08h | rs2:%08h",
+            //              cycle_count, pc, inst,
+            //              u_cpu.alu_src_a,
+            //              u_cpu.alu_src_b,
+            //              u_cpu.u_controller.reg_write,
+            //              u_cpu.u_datapath.result_data,
+            //              u_cpu.u_datapath.rs1_data,
+            //              u_cpu.u_datapath.rs2_data);
+            // end
 
             // Self-loop detection: program termination
             if (inst == 32'h0000_006f) begin
-                $display("--- Program finished cleanly via self-loop ---");
+                $display("\n--------------------------------------------------");
+                $display("Program finished cleanly via self-loop.");
+                $display("Total executed cycles: %0d", cycle_count);
+                $display("--------------------------------------------------");
                 #20;
                 $finish;
             end
 
             // Timeout safety limit
-            if (cycle_count > 1000) begin
-                $display("--- Timeout: Reached maximum cycle limit ---");
+            if (cycle_count > 50000000) begin
+                $display("\n[TIMEOUT] Reached maximum cycle limit (%0d cycles).", cycle_count);
                 $finish;
             end
         end
