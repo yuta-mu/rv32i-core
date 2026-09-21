@@ -2,7 +2,7 @@
 
 module control(
     input  opcode_t      opcode,
-    output logic         branch,
+    output logic         branch_en,
     output logic         jump,
     output logic         mem_read,
     output logic         mem_write,
@@ -14,7 +14,7 @@ module control(
 
     always_comb begin
         // ラッチ防止
-        branch     = 1'b0;
+        branch_en  = 1'b0;
         jump       = 1'b0;
         mem_read   = 1'b0;
         mem_write  = 1'b0;
@@ -53,7 +53,7 @@ module control(
             end
 
             OP_BRANCH: begin
-                branch     = 1'b1;
+                branch_en  = 1'b1;
                 alu_src    = 1'b0; // rs2
                 alu_op     = ALU_OP_BRANCH;
             end

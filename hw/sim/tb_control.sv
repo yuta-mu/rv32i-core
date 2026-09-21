@@ -21,7 +21,7 @@ module tb_control;
 
     control u_control (
         .opcode     (opcode),
-        .branch     (branch),
+        .branch_en  (branch_en),
         .jump       (jump),
         .mem_read   (mem_read),
         .mem_write  (mem_write),
