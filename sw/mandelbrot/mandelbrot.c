@@ -107,6 +107,5 @@ int main(void) {
   uart_puts("\n--- RV32I Mandelbrot Demo ---\n\n");
   render_mandelbrot();
   uart_puts("\n--- Done! ---\n");
-  while (1);
   return 0;
 }

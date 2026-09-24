@@ -11,7 +11,7 @@ IVERILOG  := iverilog -g2012 -Wall -I hw/rtl
 VVP       := vvp
 
 BSP_DIR   := bsp
-CRT0      := $(BSP_DIR)/crt0.s
+CRT0      := $(BSP_DIR)/crt0.S
 QEMU_LINKER := $(BSP_DIR)/linker.ld
 HW_LINKER   := $(BSP_DIR)/hardware.ld
 
@@ -51,11 +51,11 @@ check-env:
 # for QEMU
 %.elf: %.c $(CRT0) $(QEMU_LINKER)
 	@mkdir -p $(dir $@)
-	$(CC) $(COMMON_CFLAGS) -T $(QEMU_LINKER) $(CRT0) $< -o $@
+	$(CC) $(COMMON_CFLAGS) -DTARGET_QEMU -T $(QEMU_LINKER) $(CRT0) $< -o $@
 
 %.elf: %.s $(QEMU_LINKER)
 	@mkdir -p $(dir $@)
-	$(CC) $(COMMON_CFLAGS) -T $(QEMU_LINKER) $< -o $@
+	$(CC) $(COMMON_CFLAGS) -DTARGET_QEMU -T $(QEMU_LINKER) $< -o $@
 
 %.dump: %.elf
 	$(OBJDUMP) -D -S $< > $@
@@ -92,7 +92,6 @@ TARGET ?= sw/mandelbrot/mandelbrot.elf
 
 run: $(TARGET)
 	@echo "=== Running QEMU: $< ==="
-	@echo "Press Ctrl-A then X to exit."
 	$(QEMU) -M virt -bios none -kernel $< -nographic
 
 run-boot: tests/asm/boot.elf
