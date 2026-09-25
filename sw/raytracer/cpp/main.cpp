@@ -5,8 +5,30 @@
 #include <iostream>
 using namespace std;
 
+fpm_t hit_sphere(const point3& center, fpm_t radius, const ray& r) {
+    vec3 oc = r.origin() - center;
+    auto a = dot(r.direction(), r.direction());
+    auto b = fpm_mul(fpm_from_int(2), dot(oc, r.direction()));
+    auto c = fpm_sub(dot(oc, oc), fpm_mul(radius, radius));
+    auto discriminant = fpm_sub(fpm_mul(b, b), fpm_mul(fpm_from_int(4), fpm_mul(a, c)));
+    if (discriminant < 0) {
+        return fpm_from_int(-1);
+    } 
+    auto sqrt_d = fpm_sqrt(discriminant);
+    auto t = fpm_div(fpm_sub(fpm_mul(fpm_from_int(-1), b), sqrt_d), fpm_mul(fpm_from_int(2), a));
+    if (t > fpm_from_int(0)) {
+        return t;
+    } 
+    else {
+        t = fpm_div(fpm_add(fpm_mul(fpm_from_int(-1), b), sqrt_d), fpm_mul(fpm_from_int(2), a));
+        return t > fpm_from_int(0) ? t : fpm_from_int(-1);
+    }
+}
 
 color ray_color(const ray& r) {
+    fpm_t hit_t = hit_sphere(point3(0,0,fpm_from_int(-1)), fpm_from_ratio(1,2), r);
+    if (hit_t > 0)
+    return color(fpm_from_int(1), 0, 0);
     vec3 unit_direction = unit_vector(r.direction());
     const fpm_t one = fpm_from_int(1);
     auto t = fpm_mul(fpm_from_ratio(1, 2),fpm_add(unit_direction.y() , one));
